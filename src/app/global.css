@@ -1,3 +1,8 @@
+.wrapper {
+  display: grid;
+}
+
+/* Workbench Parts */
 .titlebar {
   grid-area: titlebar;
   height: 36px;
@@ -36,10 +41,7 @@
   background-color: #494949;
 }
 
-
-.wrapper {
-  display: grid;
-}
+/* Workbench Layout */
 .default-layout {
   grid-template-columns: auto 4fr;
   grid-template-areas:
@@ -60,7 +62,7 @@
 }
 
 
-
+/* ICON */
 .icon {
   height: 16px;
   width: 16px;
