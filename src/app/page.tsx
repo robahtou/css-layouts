@@ -11,7 +11,7 @@ const primarysidebarAdjustment = {
 };
 
 function Home() {
-  const changeLayout = e => {
+  const handleClick = e => {
     const primarysidebarPosition = e.target.classList[1];
     e.target.classList.replace(primarysidebarPosition, primarysidebarAdjustment[primarysidebarPosition]);
 
@@ -24,7 +24,7 @@ function Home() {
     <main>
       <div className="wrapper default-layout">
         <header className="titlebar">
-          <div className="icon primarysidebar-left" onClick={changeLayout}></div>
+          <div className="icon primarysidebar-left" onClick={handleClick}></div>
         </header>
 
         <section className="primarysidebar">
