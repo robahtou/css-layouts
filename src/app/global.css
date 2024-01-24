@@ -2,6 +2,7 @@
   display: grid;
 }
 
+
 /* Workbench Parts */
 .titlebar {
   grid-area: titlebar;
@@ -40,6 +41,7 @@
   height: 22px;
   background-color: #494949;
 }
+
 
 /* Workbench Layout */
 .default-layout {

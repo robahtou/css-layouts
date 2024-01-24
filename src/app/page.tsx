@@ -1,5 +1,6 @@
 'use client';
 
+
 const mainLayoutAdustment = {
   'default-layout': 'primarysidebar-position-flipped',
   'primarysidebar-position-flipped': 'default-layout'
@@ -9,22 +10,21 @@ const primarysidebarAdjustment = {
   'primarysidebar-right': 'primarysidebar-left'
 };
 
-function changeLayout(e) {
-  const primarysidebarPosition = e.target.classList[1];
-  e.target.classList.replace(primarysidebarPosition, primarysidebarAdjustment[primarysidebarPosition]);
-
-  const wrapper = document.querySelector('.wrapper');
-  const mainLayout = wrapper?.classList[1];
-  wrapper?.classList.replace(mainLayout, mainLayoutAdustment[mainLayout]);
-}
-
-
 function Home() {
+  const changeLayout = e => {
+    const primarysidebarPosition = e.target.classList[1];
+    e.target.classList.replace(primarysidebarPosition, primarysidebarAdjustment[primarysidebarPosition]);
+
+    const wrapper = document.querySelector('.wrapper');
+    const mainLayout = wrapper?.classList[1];
+    wrapper?.classList.replace(mainLayout, mainLayoutAdustment[mainLayout]);
+  }
+
   return (
     <main>
       <div className="wrapper default-layout">
         <header className="titlebar">
-          <div className="icon primarysidebar-left" onClick={(e) => changeLayout(e)}></div>
+          <div className="icon primarysidebar-left" onClick={changeLayout}></div>
         </header>
 
         <section className="primarysidebar">
