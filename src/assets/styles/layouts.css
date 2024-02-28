@@ -1,0 +1,26 @@
+:root {
+  --titlebar-height: 36px;
+  --statusbar-height: 24px;
+}
+
+.layout-default {
+  grid-template-columns: 48px auto 1fr auto;
+  grid-template-areas:
+    "titlebar    titlebar          titlebar      titlebar"
+    "activitybar primary-sidepanel control-panel secondary-sidepanel"
+    "statusbar   statusbar         statusbar     statusbar"
+  ;
+}
+
+.layout-secondary {
+  grid-template-columns: auto 1fr auto 48px;
+  grid-template-areas:
+    "titlebar            titlebar      titlebar          titlebar"
+    "secondary-sidepanel control-panel primary-sidepanel activitybar"
+    "statusbar           statusbar     statusbar         statusbar"
+  ;
+
+  & .primary-sidepanel, .activitybar {
+    order: 2;
+  }
+}
