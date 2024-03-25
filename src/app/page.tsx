@@ -45,15 +45,14 @@ function Page() {
 
     secondaryIcon.classList.replace(currentSecondaryIcon, iconSecondaryVisibleSwap[currentSecondaryIcon]);
 
-    if (currentSecondarySidePanel === 'hidden') {
-      secondarySidePanel?.classList.remove('hidden');
-    } else {
-      secondarySidePanel?.classList.add('hidden');
-    }
+    currentSecondarySidePanel === 'hidden'
+      ? secondarySidePanel?.classList.remove('hidden')
+      : secondarySidePanel?.classList.add('hidden');
   };
 
   return (
     <main id="main" className="grid layout-default">
+
       <header className="titlebar">
         <div className="icon sidepanel-left" onClick={handlePrimaryPanelClick}></div>
         <div className="icon sidepanel-hidden-right" onClick={handleSecondaryPanelClick}></div>
