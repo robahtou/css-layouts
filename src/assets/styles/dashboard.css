@@ -1,10 +1,5 @@
-.activitybar, .primary-sidepanel, .control-panel, .secondary-sidepanel {
-  height: calc(100vh - var(--titlebar-height) - var(--statusbar-height));
-}
-
 .titlebar {
   grid-area: titlebar;
-  height: 36px;
   background-color: #505050;
 
   padding: 10px 8px;
@@ -15,26 +10,38 @@
 }
 
 .activitybar {
-  grid-area: activitybar;
   width: 48px;
   background-color: #D9D9D9;
 }
 
+.main-control-panel {
+  width: 100%;
+  height: calc(100vh - var(--titlebar-height) - var(--statusbar-height));
+  display: flex;
+}
+
 .primary-sidepanel {
-  grid-area: primary-sidepanel;
-  width: 300px;
   background-color: #ACACAC;
 }
 
+.primary-dragbar,
+.secondary-dragbar {
+  width: 4px;
+  cursor: col-resize;
+  background-color: black;
+
+  &:hover {
+    background-color: blue;
+  }
+}
+
 .control-panel {
-  grid-area: control-panel;
-  width: 100%;
   background-color: #838080;
+  min-width: 220px;
+  overflow: hidden;
 }
 
 .secondary-sidepanel {
-  grid-area: secondary-sidepanel;
-  width: 300px;
   background-color: #ACACAC;
 }
 
