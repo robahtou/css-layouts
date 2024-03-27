@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 
 const iconPrimarySwap = {
@@ -20,16 +20,17 @@ const iconSecondaryVisibleSwap = {
   'sidepanel-left': 'sidepanel-hidden-left'
 };
 
-function Page({ initialPrimaryColimnWidth=32, initialSecondaryColumnWidth=0 }) {
-  const [primaryColumnWidth, setPrimaryColumnWidth]     = useState(initialPrimaryColimnWidth);      // primary sidepanel width
-  const [secondaryColumnWidth, setSecondaryColumnWidth] = useState(initialSecondaryColumnWidth);    // secondary sidepanel width
-  const [isSwapped, setIsSwapped]                       = useState(false);                          // swapped layout
+function Page() {
+  let primaryDragbar;
+  let mainControlPanel;
+  let primarySidePanel;
+  let isHandlerDragging = false;
 
-  const primaryRef          = useRef(null);
-  const primaryDragbarRef   = useRef(null);
-  const controlRef          = useRef(null);
-  const secondaryDragbarRef = useRef(null);
-  const secondaryRef        = useRef(null);
+  useEffect(() => {
+    primaryDragbar = document.querySelector('.primary-dragbar')!;
+    mainControlPanel = primaryDragbar.closest('.main-control-panel')!;
+    primarySidePanel = mainControlPanel.querySelector('.primary-sidepanel')!;
+  }, []);
 
   const onPrimaryMouseDown  = (evt) => {
     evt.preventDefault();
@@ -38,25 +39,20 @@ function Page({ initialPrimaryColimnWidth=32, initialSecondaryColumnWidth=0 }) {
   };
   const onPrimaryMouseMove  = (mouseEvent: MouseEvent) => {
     mouseEvent.preventDefault();
-    if (!primaryRef.current || !controlRef.current || !secondaryRef.current) return;
+    // Get offset
+    var containerOffsetLeft = mainControlPanel.offsetLeft;
 
-    const primaryRect = primaryRef.current.getBoundingClientRect();
-    const controlRect = controlRef.current.getBoundingClientRect();
-    const secondaryRect = secondaryRef.current.getBoundingClientRect();
+    // Get x-coordinate of pointer relative to container
+    var pointerRelativeXpos = mouseEvent.clientX - containerOffsetLeft;
 
-    const boundingWidth = primaryRect.width + controlRect.width + secondaryRect.width;
+    // Arbitrary minimum width set on box A, otherwise its inner content will collapse to width of 0
+    var boxAminWidth = 60;
 
-    const mousePositionLeft   = mouseEvent.clientX;
-    const primaryPositionLeft = primaryRect.left;
-    const primaryPositionRight  = primaryRect.right;
-
-    let newPrimaryWidth = mousePositionLeft - primaryPositionLeft;
-    if (isSwapped) {
-      newPrimaryWidth = primaryPositionRight - mousePositionLeft;
-    }
-
-    const newPrimaryWidth_percentage = (newPrimaryWidth / boundingWidth) * 100;
-    setPrimaryColumnWidth(Math.min(100, Math.max(0, newPrimaryWidth_percentage)));
+    // Resize box A
+    // * 8px is the left/right spacing between .handler and its inner pseudo-element
+    // * Set flex-grow to 0 to prevent it from growing
+    primarySidePanel.style.width = (Math.max(boxAminWidth, pointerRelativeXpos - 8)) + 'px';
+    primarySidePanel.style.flexGrow = 0;
   };
   const onPrimaryMouseUp    = () => {
     document.removeEventListener('mousemove', onPrimaryMouseMove);
@@ -70,31 +66,6 @@ function Page({ initialPrimaryColimnWidth=32, initialSecondaryColumnWidth=0 }) {
   };
   const onSecondaryMouseMove  = (mouseEvent: MouseEvent) => {
     mouseEvent.preventDefault();
-    if (!primaryRef.current || !controlRef.current || !secondaryRef.current) return;
-
-    const primaryRect = primaryRef.current.getBoundingClientRect();
-    const controlRect = controlRef.current.getBoundingClientRect();
-    const secondaryRect = secondaryRef.current.getBoundingClientRect();
-
-    const boundingWidth = primaryRect.width + controlRect.width + secondaryRect.width;
-
-    const mousePositionLeft     = mouseEvent.clientX;
-    const controlPositionLeft   = controlRect.left;
-    const controlPositionRight  = controlRect.right;
-    const currentControlWidth   = controlRect.width;
-    const currentSecondaryWidth = secondaryRect.width;
-
-    let newControlWidth = mousePositionLeft - controlPositionLeft;
-    let delta = newControlWidth - currentControlWidth;
-    let newSecondaryWidth = currentSecondaryWidth - delta;
-    if (isSwapped) {
-      newControlWidth = controlPositionRight - mousePositionLeft;
-      delta = newControlWidth - currentControlWidth;
-      newSecondaryWidth = currentSecondaryWidth - delta;
-    }
-
-    const newSecondaryWidth_percentage = (newSecondaryWidth / boundingWidth) * 100;
-    setSecondaryColumnWidth(Math.min(100, Math.max(0, newSecondaryWidth_percentage)));
   };
   const onSecondaryMouseUp    = () => {
     document.removeEventListener('mousemove', onSecondaryMouseMove);
@@ -150,30 +121,22 @@ function Page({ initialPrimaryColimnWidth=32, initialSecondaryColumnWidth=0 }) {
         <section className="activitybar"></section>
 
         <div id="main-control-panel" className="main-control-panel">
-          <section className="primary-sidepanel" style={{ width: `${primaryColumnWidth}%` }} ref={primaryRef}>
+          <section className="primary-sidepanel">
             <header className="somebar"></header>
             <main className="some-panel"></main>
           </section>
 
-          <div className="primary-dragbar"
-            ref={primaryDragbarRef}
-            onMouseDown={onPrimaryMouseDown}
-          />
+          <div className="primary-dragbar" onMouseDown={onPrimaryMouseDown} />
 
-          <section className="control-panel" style={{ width: `${100 - primaryColumnWidth - secondaryColumnWidth}%` }}
-            ref={controlRef}
-          >
+          <section className="control-panel">
             <header className="controlbar"></header>
             <div className="panel-one"></div>
             <div className="panel-two"></div>
           </section>
 
-          <div className="secondary-dragbar"
-            ref={secondaryDragbarRef}
-            onMouseDown={onSecondaryMouseDown}
-          />
+          <div className="secondary-dragbar" onMouseDown={onSecondaryMouseDown} />
 
-          <section className="secondary-sidepanel hidden" style={{ width: `${secondaryColumnWidth}%` }} ref={secondaryRef}>
+          <section className="secondary-sidepanel hidden">
             <header className="somebar"></header>
             <main className="some-panel"></main>
           </section>

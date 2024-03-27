@@ -21,14 +21,26 @@
 }
 
 .primary-sidepanel {
+  flex: 1 1 32%;
   background-color: #ACACAC;
 }
 
 .primary-dragbar,
 .secondary-dragbar {
-  width: 4px;
+  width: 20px;
+  flex: 0 0 auto;
+
   cursor: col-resize;
   background-color: black;
+
+  &::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 100%;
+    background: red;
+    margin: 0 auto;
+  }
 
   &:hover {
     background-color: blue;
@@ -36,8 +48,9 @@
 }
 
 .control-panel {
-  background-color: #838080;
   min-width: 220px;
+  flex: 1 1 auto;
+  background-color: #838080;
   overflow: hidden;
 }
 
