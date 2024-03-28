@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, MouseEvent } from "react";
 
 
 const iconPrimarySwap = {
@@ -20,56 +20,88 @@ const iconSecondaryVisibleSwap = {
   'sidepanel-left': 'sidepanel-hidden-left'
 };
 
+
 function Page() {
-  let primaryDragbar;
-  let mainControlPanel;
-  let primarySidePanel;
-  let isHandlerDragging = false;
+  let mainControlPanel    :HTMLElement;
+  let primarySidePanel    :HTMLElement;
+  let primaryDragbar      :HTMLElement;
+  let secondaryDragbar    :HTMLElement;
+  let secondarySidePanel  :HTMLElement;
+  let isSwapped = false;
+  let offset = 0;
 
   useEffect(() => {
-    primaryDragbar = document.querySelector('.primary-dragbar')!;
-    mainControlPanel = primaryDragbar.closest('.main-control-panel')!;
-    primarySidePanel = mainControlPanel.querySelector('.primary-sidepanel')!;
+    mainControlPanel    = document.querySelector('#main-control-panel') as HTMLElement;
+    primaryDragbar      = mainControlPanel.querySelector('.primary-dragbar') as HTMLElement;
+    primarySidePanel    = mainControlPanel.querySelector('.primary-sidepanel') as HTMLElement;
+    secondaryDragbar    = mainControlPanel.querySelector('.secondary-dragbar') as HTMLElement;
+    secondarySidePanel  = mainControlPanel.querySelector('.secondary-sidepanel') as HTMLElement;
   }, []);
 
-  const onPrimaryMouseDown  = (evt) => {
-    evt.preventDefault();
+  const onPrimaryMouseDown  = (mouseEvent: MouseEvent) => {
+    mouseEvent.preventDefault();
+
+    const primaryDragbarRect    = primaryDragbar.getBoundingClientRect();
+    const primarySidePanelRect  = primarySidePanel.getBoundingClientRect();
+
+    if ((primaryDragbarRect.left <= mouseEvent.clientX) && (mouseEvent.clientX <= primaryDragbarRect.right)) {
+      offset = isSwapped
+        ? primarySidePanelRect.left - mouseEvent.clientX
+        : mouseEvent.clientX        - primarySidePanelRect.right
+      ;
+    }
+
     document.addEventListener('mousemove', onPrimaryMouseMove);
     document.addEventListener('mouseup', onPrimaryMouseUp);
   };
   const onPrimaryMouseMove  = (mouseEvent: MouseEvent) => {
     mouseEvent.preventDefault();
-    // Get offset
-    var containerOffsetLeft = mainControlPanel.offsetLeft;
 
-    // Get x-coordinate of pointer relative to container
-    var pointerRelativeXpos = mouseEvent.clientX - containerOffsetLeft;
+    const primarySidePanelRec = primarySidePanel.getBoundingClientRect() as DOMRect;
+    const mousePositionLeft   = mouseEvent.clientX;
 
-    // Arbitrary minimum width set on box A, otherwise its inner content will collapse to width of 0
-    var boxAminWidth = 60;
+    const newPrimaryWidth = isSwapped
+      ? primarySidePanelRec.right - mousePositionLeft         - offset
+      : mousePositionLeft         - primarySidePanelRec.left  - offset;
 
-    // Resize box A
-    // * 8px is the left/right spacing between .handler and its inner pseudo-element
-    // * Set flex-grow to 0 to prevent it from growing
-    primarySidePanel.style.width = (Math.max(boxAminWidth, pointerRelativeXpos - 8)) + 'px';
-    primarySidePanel.style.flexGrow = 0;
+    primarySidePanel.style.flexBasis = `${Math.max(0, newPrimaryWidth)}px`;
   };
   const onPrimaryMouseUp    = () => {
     document.removeEventListener('mousemove', onPrimaryMouseMove);
     document.removeEventListener('mouseup', onPrimaryMouseUp);
+    offset = 0;
   };
 
-  const onSecondaryMouseDown  = (evt) => {
-    evt.preventDefault();
+  const onSecondaryMouseDown  = (mouseEvent: MouseEvent) => {
+    const secondaryDragbarRect    = secondaryDragbar.getBoundingClientRect();
+    const secondarySidePanelRect  = secondarySidePanel.getBoundingClientRect();
+
+    if ((secondaryDragbarRect.left <= mouseEvent.clientX) && (mouseEvent.clientX <= secondaryDragbarRect.right)) {
+      offset = isSwapped
+        ? mouseEvent.clientX          - secondarySidePanelRect.right
+        : secondarySidePanelRect.left - mouseEvent.clientX
+      ;
+    }
+
     document.addEventListener('mousemove', onSecondaryMouseMove);
     document.addEventListener('mouseup', onSecondaryMouseUp);
   };
   const onSecondaryMouseMove  = (mouseEvent: MouseEvent) => {
     mouseEvent.preventDefault();
+
+    const secondarySidePanelRec = secondarySidePanel.getBoundingClientRect() as DOMRect;
+    const mousePositionLeft     = mouseEvent.clientX;
+
+    const newSecondaryWidth = isSwapped
+      ? mousePositionLeft           - secondarySidePanelRec.left  - offset
+      : secondarySidePanelRec.right - mousePositionLeft           - offset
+
+    secondarySidePanel.style.flexBasis = `${Math.max(0, newSecondaryWidth)}px`;
   };
   const onSecondaryMouseUp    = () => {
     document.removeEventListener('mousemove', onSecondaryMouseMove);
     document.removeEventListener('mouseup', onSecondaryMouseUp);
+    offset = 0;
   };
 
   const handlePrimaryPanelClick   = e => {
@@ -85,27 +117,24 @@ function Page() {
     secondaryIcon.classList.replace(currentSecondaryIcon, iconSecondaryPositionSwap[currentSecondaryIcon]);
 
     if (!hasSwapped) {
-      setIsSwapped(true);
+      isSwapped = true;
       mainContainer.classList.add('swapped')
     } else {
-      setIsSwapped(false);
+      isSwapped = false;
       mainContainer.classList.remove('swapped');
     }
   };
   const handleSecondaryPanelClick = e => {
     const secondaryIcon = e.target;
-    const secondarySidePanel = document.querySelector('.secondary-sidepanel');
     const currentSecondaryIcon = secondaryIcon.classList[1];
     const currentSecondarySidePanel = secondarySidePanel.classList[1];
 
     secondaryIcon.classList.replace(currentSecondaryIcon, iconSecondaryVisibleSwap[currentSecondaryIcon]);
 
     if (currentSecondarySidePanel === 'hidden') {
-      secondarySidePanel?.classList.remove('hidden')
-      setSecondaryColumnWidth(32);
+      secondarySidePanel.classList.remove('hidden')
     } else {
-      secondarySidePanel?.classList.add('hidden');
-      setSecondaryColumnWidth(0);
+      secondarySidePanel.classList.add('hidden');
     }
   };
 
