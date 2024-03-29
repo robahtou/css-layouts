@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from 'react';
 
 
 const iconPrimarySwap = {
@@ -21,9 +21,13 @@ const iconSecondaryVisibleSwap = {
 };
 
 function Page({ initialPrimaryColimnWidth=32, initialSecondaryColumnWidth=0 }) {
-  const [primaryColumnWidth, setPrimaryColumnWidth]     = useState(initialPrimaryColimnWidth);      // primary sidepanel width
+  const [primaryColumnWidth  , setPrimaryColumnWidth  ] = useState(initialPrimaryColimnWidth);      // primary sidepanel width
   const [secondaryColumnWidth, setSecondaryColumnWidth] = useState(initialSecondaryColumnWidth);    // secondary sidepanel width
-  const [isSwapped, setIsSwapped]                       = useState(false);                          // swapped layout
+  const [offset              , setOffset              ] = useState(0);                              // offset for primary sidepanel [left/right]
+  const [isSwapped           , setIsSwapped           ] = useState(false);                          // swapped layout
+
+  const [isPrimaryMouseDown  , setIsPrimaryMouseDown  ] = useState(false);                          // mouse down flag
+  const [isSecondaryMouseDown, setIsSecondaryMouseDown] = useState(false);                          // mouse down flag
 
   const primaryRef          = useRef(null);
   const primaryDragbarRef   = useRef(null);
@@ -31,42 +35,91 @@ function Page({ initialPrimaryColimnWidth=32, initialSecondaryColumnWidth=0 }) {
   const secondaryDragbarRef = useRef(null);
   const secondaryRef        = useRef(null);
 
-  const onPrimaryMouseDown  = (evt) => {
-    evt.preventDefault();
-    document.addEventListener('mousemove', onPrimaryMouseMove);
-    document.addEventListener('mouseup', onPrimaryMouseUp);
+
+  useEffect(() => {
+    if (isPrimaryMouseDown) {
+      document.addEventListener('mousemove', onPrimaryMouseMove);
+      document.addEventListener('mouseup', onPrimaryMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', onPrimaryMouseMove);
+      document.removeEventListener('mouseup', onPrimaryMouseUp);
+    };
+  }, [isPrimaryMouseDown]);
+  useEffect(() => {
+    if (isSecondaryMouseDown) {
+      document.addEventListener('mousemove', onSecondaryMouseMove);
+      document.addEventListener('mouseup', onSecondaryMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', onSecondaryMouseMove);
+      document.removeEventListener('mouseup', onSecondaryMouseUp);
+    };
+  }, [isSecondaryMouseDown]);
+
+  const onPrimaryMouseDown  = (mouseEvent: MouseEvent) => {
+    mouseEvent.preventDefault();
+
+    setIsPrimaryMouseDown(true);
+
+    const primaryDragbarRect    = primaryDragbarRef.current.getBoundingClientRect();
+    const primarySidePanelRect  = primaryRef.current.getBoundingClientRect();
+
+    if ((primaryDragbarRect.left <= mouseEvent.clientX) && (mouseEvent.clientX <= primaryDragbarRect.right)) {
+      const offset = isSwapped
+        ? primarySidePanelRect.left - mouseEvent.clientX
+        : mouseEvent.clientX        - primarySidePanelRect.right
+      ;
+
+      setOffset(offset);
+    }
   };
   const onPrimaryMouseMove  = (mouseEvent: MouseEvent) => {
     mouseEvent.preventDefault();
     if (!primaryRef.current || !controlRef.current || !secondaryRef.current) return;
 
-    const primaryRect = primaryRef.current.getBoundingClientRect();
-    const controlRect = controlRef.current.getBoundingClientRect();
+    const primaryRect   = primaryRef.current.getBoundingClientRect();
+    const controlRect   = controlRef.current.getBoundingClientRect();
     const secondaryRect = secondaryRef.current.getBoundingClientRect();
 
     const boundingWidth = primaryRect.width + controlRect.width + secondaryRect.width;
 
-    const mousePositionLeft   = mouseEvent.clientX;
-    const primaryPositionLeft = primaryRect.left;
+    const mousePositionLeft     = mouseEvent.clientX;
+    const primaryPositionLeft   = primaryRect.left;
     const primaryPositionRight  = primaryRect.right;
 
-    let newPrimaryWidth = mousePositionLeft - primaryPositionLeft;
+    let newPrimaryWidth = mousePositionLeft - primaryPositionLeft - offset;
     if (isSwapped) {
-      newPrimaryWidth = primaryPositionRight - mousePositionLeft;
+      newPrimaryWidth = primaryPositionRight - mousePositionLeft - offset;
     }
 
     const newPrimaryWidth_percentage = (newPrimaryWidth / boundingWidth) * 100;
     setPrimaryColumnWidth(Math.min(100, Math.max(0, newPrimaryWidth_percentage)));
   };
   const onPrimaryMouseUp    = () => {
-    document.removeEventListener('mousemove', onPrimaryMouseMove);
-    document.removeEventListener('mouseup', onPrimaryMouseUp);
+    setIsPrimaryMouseDown(false);
+    setOffset(0);
   };
 
-  const onSecondaryMouseDown  = (evt) => {
-    evt.preventDefault();
-    document.addEventListener('mousemove', onSecondaryMouseMove);
-    document.addEventListener('mouseup', onSecondaryMouseUp);
+  const onSecondaryMouseDown  = (mouseEvent: MouseEvent) => {
+    mouseEvent.preventDefault();
+
+    setIsSecondaryMouseDown(true);
+
+    const secondaryDragbarRect    = secondaryDragbarRef.current.getBoundingClientRect();
+    const secondarySidePanelRect  = secondaryRef.current.getBoundingClientRect();
+
+    if ((secondaryDragbarRect.left <= mouseEvent.clientX) && (mouseEvent.clientX <= secondaryDragbarRect.right)) {
+      const offset = isSwapped
+        ? mouseEvent.clientX          - secondarySidePanelRect.right
+        : secondarySidePanelRect.left - mouseEvent.clientX
+      ;
+
+      setOffset(offset);
+    }
+
   };
   const onSecondaryMouseMove  = (mouseEvent: MouseEvent) => {
     mouseEvent.preventDefault();
@@ -97,8 +150,8 @@ function Page({ initialPrimaryColimnWidth=32, initialSecondaryColumnWidth=0 }) {
     setSecondaryColumnWidth(Math.min(100, Math.max(0, newSecondaryWidth_percentage)));
   };
   const onSecondaryMouseUp    = () => {
-    document.removeEventListener('mousemove', onSecondaryMouseMove);
-    document.removeEventListener('mouseup', onSecondaryMouseUp);
+    setIsSecondaryMouseDown(false);
+    setOffset(0);
   };
 
   const handlePrimaryPanelClick   = e => {
@@ -137,6 +190,8 @@ function Page({ initialPrimaryColimnWidth=32, initialSecondaryColumnWidth=0 }) {
       setSecondaryColumnWidth(0);
     }
   };
+
+  console.log('rendering page')
 
   return (
     <main className="grid main-layout">
