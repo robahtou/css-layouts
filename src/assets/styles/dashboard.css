@@ -17,21 +17,20 @@
 .main-control-panel {
   width: 100%;
   height: calc(100vh - var(--titlebar-height) - var(--statusbar-height));
-  display: flex;
+
+  display: grid;
+  grid-template-columns: minmax(20%, 50%) 4px minmax(20%, 50%);
+  grid-template-areas: "primary-sidepanel primary-dragbar control-panel";
 }
 
 .primary-sidepanel {
-  flex: 0 0 200px;
+  grid-area: primary-sidepanel;
   background-color: #ACACAC;
 }
 
 .primary-dragbar,
 .secondary-dragbar {
-  /* width: 20px; */
-  flex: 0 0 auto;
-
   cursor: col-resize;
-  background-color: black;
 
   &::before {
     content: '';
@@ -47,13 +46,20 @@
   }
 }
 
+.primary-dragbar {
+  grid-area: primary-dragbar;
+}
+.secondary-dragbar {
+  grid-area: secondary-dragbar;
+}
+
 .control-panel {
-  flex: 1 1 auto;
+  grid-area: control-panel;
   background-color: #838080;
 }
 
 .secondary-sidepanel {
-  flex: 0 0 200px;
+  grid-area: secondary-sidepanel;
   background-color: #ACACAC;
 }
 

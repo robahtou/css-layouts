@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 
 
 const iconPrimarySwap = {
@@ -22,7 +22,6 @@ const iconSecondaryVisibleSwap = {
 
 
 function Page() {
-  let mainControlPanel    :HTMLElement;
   let primarySidePanel    :HTMLElement;
   let primaryDragbar      :HTMLElement;
   let secondaryDragbar    :HTMLElement;
@@ -30,16 +29,11 @@ function Page() {
   let isSwapped = false;
   let offset = 0;
 
-  useEffect(() => {
-    mainControlPanel    = document.querySelector('#main-control-panel') as HTMLElement;
-    primaryDragbar      = mainControlPanel.querySelector('.primary-dragbar') as HTMLElement;
-    primarySidePanel    = mainControlPanel.querySelector('.primary-sidepanel') as HTMLElement;
-    secondaryDragbar    = mainControlPanel.querySelector('.secondary-dragbar') as HTMLElement;
-    secondarySidePanel  = mainControlPanel.querySelector('.secondary-sidepanel') as HTMLElement;
-  }, []);
-
   const onPrimaryMouseDown  = (mouseEvent: MouseEvent) => {
     mouseEvent.preventDefault();
+
+    primaryDragbar    = document.getElementById('primary-dragbar')    as HTMLElement;
+    primarySidePanel  = document.getElementById('primary-sidepanel')  as HTMLElement;
 
     const primaryDragbarRect    = primaryDragbar.getBoundingClientRect();
     const primarySidePanelRect  = primarySidePanel.getBoundingClientRect();
@@ -57,14 +51,30 @@ function Page() {
   const onPrimaryMouseMove  = (mouseEvent: MouseEvent) => {
     mouseEvent.preventDefault();
 
-    const primarySidePanelRec = primarySidePanel.getBoundingClientRect() as DOMRect;
+    const mainControlPanel    = document.getElementById('main-control-panel') as HTMLElement;
+    const primarySidePanelRec = primarySidePanel.getBoundingClientRect()      as DOMRect;
     const mousePositionLeft   = mouseEvent.clientX;
 
-    const newPrimaryWidth = isSwapped
+    console.log(isSwapped)
+    const newPrimaryWidth     = isSwapped
       ? primarySidePanelRec.right - mousePositionLeft         - offset
       : mousePositionLeft         - primarySidePanelRec.left  - offset;
+    console.log(newPrimaryWidth)
 
-    primarySidePanel.style.flexBasis = `${Math.max(0, newPrimaryWidth)}px`;
+    const currentGridTemplate = getComputedStyle(mainControlPanel)['grid-template-columns'].split(' ');
+    if (currentGridTemplate.length === 3) {
+      if (isSwapped) {
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, auto) 4px minmax(20%, ${newPrimaryWidth}px)`;
+      } else {
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, ${newPrimaryWidth}px) 4px minmax(20%, auto)`;
+      }
+    } else {
+      if (isSwapped) {
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, ${currentGridTemplate[0]}) 4px minmax(20%, auto) 4px minmax(20%, ${newPrimaryWidth}px)`;
+      } else {
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, ${newPrimaryWidth}px) 4px minmax(20%, auto) 4px minmax(20%, ${currentGridTemplate[currentGridTemplate.length -1]})`;
+      }
+    }
   };
   const onPrimaryMouseUp    = () => {
     document.removeEventListener('mousemove', onPrimaryMouseMove);
@@ -73,6 +83,11 @@ function Page() {
   };
 
   const onSecondaryMouseDown  = (mouseEvent: MouseEvent) => {
+    mouseEvent.preventDefault();
+
+    secondaryDragbar    = document.getElementById('secondary-dragbar')    as HTMLElement;
+    secondarySidePanel  = document.getElementById('secondary-sidepanel')  as HTMLElement;
+
     const secondaryDragbarRect    = secondaryDragbar.getBoundingClientRect();
     const secondarySidePanelRect  = secondarySidePanel.getBoundingClientRect();
 
@@ -89,14 +104,20 @@ function Page() {
   const onSecondaryMouseMove  = (mouseEvent: MouseEvent) => {
     mouseEvent.preventDefault();
 
-    const secondarySidePanelRec = secondarySidePanel.getBoundingClientRect() as DOMRect;
+    const mainControlPanel      = document.getElementById('main-control-panel') as HTMLElement;
+    const secondarySidePanelRec = secondarySidePanel.getBoundingClientRect()    as DOMRect;
     const mousePositionLeft     = mouseEvent.clientX;
 
     const newSecondaryWidth = isSwapped
       ? mousePositionLeft           - secondarySidePanelRec.left  - offset
       : secondarySidePanelRec.right - mousePositionLeft           - offset
 
-    secondarySidePanel.style.flexBasis = `${Math.max(0, newSecondaryWidth)}px`;
+    const currentGridTemplate = getComputedStyle(mainControlPanel)['grid-template-columns'].split(' ');
+    if (isSwapped) {
+      mainControlPanel.style.gridTemplateColumns = `minmax(20%, ${newSecondaryWidth}px) 4px minmax(20%, auto) 4px minmax(20%, ${currentGridTemplate[currentGridTemplate.length-1]})`;
+    } else {
+      mainControlPanel.style.gridTemplateColumns = `minmax(20%, ${currentGridTemplate[0]}) 4px minmax(20%, auto) 4px minmax(20%, ${newSecondaryWidth}px)`;
+    }
   };
   const onSecondaryMouseUp    = () => {
     document.removeEventListener('mousemove', onSecondaryMouseMove);
@@ -105,35 +126,81 @@ function Page() {
   };
 
   const handlePrimaryPanelClick   = e => {
-    const primaryIcon = e.target;
+    const primaryIcon   = e.target;
     const secondaryIcon = e.target.nextElementSibling;
-    const mainContainer = document.getElementById('main-container');
 
-    const currentPrimaryIcon = primaryIcon.classList[1];
-    const currentSecondaryIcon = secondaryIcon.classList[1];
-    const hasSwapped = mainContainer.classList[1];
+    const mainContainer     = document.getElementById('main-container')     as HTMLElement;
+    const mainControlPanel  = document.getElementById('main-control-panel') as HTMLElement;
+
+    const currentPrimaryIcon    = primaryIcon.classList[1];
+    const currentSecondaryIcon  = secondaryIcon.classList[1];
+    const hasSwapped            = mainContainer.classList[1] || false;
 
     primaryIcon.classList.replace(currentPrimaryIcon, iconPrimarySwap[currentPrimaryIcon]);
     secondaryIcon.classList.replace(currentSecondaryIcon, iconSecondaryPositionSwap[currentSecondaryIcon]);
 
-    if (!hasSwapped) {
-      isSwapped = true;
-      mainContainer.classList.add('swapped')
+    const currentGridTemplate = getComputedStyle(mainControlPanel)['grid-template-columns'].split(' ');
+    if (currentGridTemplate.length === 3) {
+      if (!hasSwapped) {
+        isSwapped = true;
+        mainContainer.classList.add('swapped');
+        mainControlPanel.style.gridTemplateAreas = `'control-panel primary-dragbar primary-sidepanel'`;
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, auto) 4px minmax(20%, ${currentGridTemplate[0]})`;
+      } else {
+        isSwapped = false;
+        mainContainer.classList.remove('swapped');
+        mainControlPanel.style.gridTemplateAreas = `'primary-sidepanel primary-dragbar control-panel'`;
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, ${currentGridTemplate[2]}) 4px minmax(20%, auto)`;
+      }
     } else {
-      isSwapped = false;
-      mainContainer.classList.remove('swapped');
+      if (!hasSwapped) {
+        isSwapped = true;
+        mainContainer.classList.add('swapped');
+        mainControlPanel.style.gridTemplateAreas = `'secondary-sidepanel secondary-dragbar control-panel primary-dragbar primary-sidepanel'`;
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, ${currentGridTemplate[currentGridTemplate.length-1]}) 4px minmax(20%, auto) 4px minmax(20%, ${currentGridTemplate[0]})`;
+      } else {
+        isSwapped = false;
+        mainContainer.classList.remove('swapped');
+        mainControlPanel.style.gridTemplateAreas = `'primary-sidepanel primary-dragbar control-panel secondary-dragbar secondary-sidepanel'`;
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, ${currentGridTemplate[0]}) 4px minmax(20%, auto) 4px minmax(20%, ${currentGridTemplate[currentGridTemplate.length-1]})`;
+      }
     }
   };
   const handleSecondaryPanelClick = e => {
     const secondaryIcon = e.target;
     const currentSecondaryIcon = secondaryIcon.classList[1];
+
+    const mainControlPanel    = document.getElementById('main-control-panel')!;
+    const secondaryDragbar    = document.getElementById('secondary-dragbar')!;
+    const secondarySidePanel  = document.getElementById('secondary-sidepanel')!;
+
     const currentSecondarySidePanel = secondarySidePanel.classList[1];
 
     secondaryIcon.classList.replace(currentSecondaryIcon, iconSecondaryVisibleSwap[currentSecondaryIcon]);
+    const currentGridTemplate = getComputedStyle(mainControlPanel)['grid-template-columns'].split(' ');
 
     if (currentSecondarySidePanel === 'hidden') {
-      secondarySidePanel.classList.remove('hidden')
+      if (isSwapped) {
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, 50%) 4px minmax(20%, auto) 4px minmax(20%, ${currentGridTemplate[currentGridTemplate.length-1]})`;
+        mainControlPanel.style.gridTemplateAreas = `'secondary-sidepanel secondary-dragbar control-panel primary-dragbar primary-sidepanel'`;
+      } else {
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, ${currentGridTemplate[0]}) 4px minmax(20%, auto) 4px minmax(20%, 50%)`;
+        mainControlPanel.style.gridTemplateAreas = `'primary-sidepanel primary-dragbar control-panel secondary-dragbar secondary-sidepanel'`;
+      }
+
+      secondaryDragbar.classList.remove('hidden');
+      secondarySidePanel.classList.remove('hidden');
     } else {
+      if (isSwapped) {
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, auto) 4px minmax(20%, ${currentGridTemplate[currentGridTemplate.length-1]})`;
+        mainControlPanel.style.gridTemplateAreas = `'control-panel primary-dragbar primary-sidepanel'`;
+
+      } else {
+        mainControlPanel.style.gridTemplateColumns = `minmax(20%, ${currentGridTemplate[0]}) 4px minmax(20%, auto)`;
+        mainControlPanel.style.gridTemplateAreas = `'primary-sidepanel primary-dragbar control-panel'`;
+      }
+
+      secondaryDragbar.classList.add('hidden');
       secondarySidePanel.classList.add('hidden');
     }
   };
@@ -142,30 +209,30 @@ function Page() {
     <main className="grid main-layout">
 
       <header className="titlebar">
-        <div className="icon sidepanel-left" onClick={handlePrimaryPanelClick}></div>
-        <div className="icon sidepanel-hidden-right" onClick={handleSecondaryPanelClick}></div>
+        <div className="icon sidepanel-left"          onClick={handlePrimaryPanelClick}   />
+        <div className="icon sidepanel-hidden-right"  onClick={handleSecondaryPanelClick} />
       </header>
 
       <div id="main-container" className="main-container">
-        <section className="activitybar"></section>
+        <section className="activitybar" />
 
         <div id="main-control-panel" className="main-control-panel">
-          <section className="primary-sidepanel">
+          <section id="primary-sidepanel" className="primary-sidepanel">
             <header className="somebar"></header>
             <main className="some-panel"></main>
           </section>
 
-          <div className="primary-dragbar" onMouseDown={onPrimaryMouseDown} />
+          <div id="primary-dragbar" className="primary-dragbar" onMouseDown={onPrimaryMouseDown} />
 
-          <section className="control-panel">
+          <section id="control-panel" className="control-panel">
             <header className="controlbar"></header>
             <div className="panel-one"></div>
             <div className="panel-two"></div>
           </section>
 
-          <div className="secondary-dragbar" onMouseDown={onSecondaryMouseDown} />
+          <div id="secondary-dragbar" className="secondary-dragbar hidden" onMouseDown={onSecondaryMouseDown} />
 
-          <section className="secondary-sidepanel hidden">
+          <section id="secondary-sidepanel" className="secondary-sidepanel hidden">
             <header className="somebar"></header>
             <main className="some-panel"></main>
           </section>

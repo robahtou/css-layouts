@@ -11,7 +11,7 @@
     "statusbar"
   ;
 
-  .main-container {
+  #main-container {
     grid-area: main;
     display: flex;
     flex-flow: row nowrap;

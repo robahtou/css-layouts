@@ -3,20 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "@types/node": "20.11.30",
-    "@types/react": "18.2.73",
-    "@types/react-dom": "18.2.22",
-    "typescript": "5.4.3"
+    "@types/node": "20.12.7",
+    "@types/react": "18.2.79",
+    "@types/react-dom": "18.2.25",
+    "typescript": "5.4.5"
   },
   "dependencies": {
     "autoprefixer": "10.4.19",
     "del-cli": "5.1.0",
-    "next": "14.1.4",
+    "next": "14.3.0-canary.21",
     "postcss": "8.4.38",
     "postcss-custom-media": "10.0.4",
     "postcss-import": "16.1.0",
     "postcss-media-minmax": "5.0.0",
-    "postcss-nesting": "12.1.0",
+    "postcss-nesting": "12.1.2",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
